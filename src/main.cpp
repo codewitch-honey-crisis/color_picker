@@ -18,7 +18,7 @@ using namespace gfx;
 #define LCD_CS 5
 #define LCD_DC 2
 #define LCD_RST 4
-#define LCD_BL 22
+#define LCD_BL 14
 
 #define TOUCH_CS 15
 
