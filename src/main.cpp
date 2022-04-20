@@ -7,21 +7,42 @@
 #include "x11_palette.hpp"
 using namespace arduino;
 using namespace gfx;
-
+// both devices share the SPI bus:
 #define HOST VSPI
-
+// wiring 
+// MOSI 23
+// MISO 19
+// SCLK 18
+// VCC 3.3v
+// see below for additional pins:
 #define LCD_CS 5
 #define LCD_DC 2
 #define LCD_RST 4
 #define LCD_BL 22
-#define LCD_ROTATION 3
-#define LCD_BL_HIGH true
 
 #define TOUCH_CS 15
 
+#define LCD_ROTATION 3
+#define LCD_BL_HIGH true
+
+// use the default pins for the SPI bus
 using bus_t = tft_spi<HOST,LCD_CS>;
+// set up the display
 using lcd_t = ili9341<LCD_DC,LCD_RST,LCD_BL,bus_t,LCD_ROTATION,LCD_BL_HIGH>;
+// set up the touch driver
 using touch_t = xpt2046<TOUCH_CS>;
+
+// declare the display
+lcd_t lcd;
+// declare the touch. The touch takes a reference to an SPIClass
+// However, devices that share a bus must share the same instance.
+// Always retrieving the SPIClass from spi_container ensures the same
+// instance for the same host (requires the htcw_tft_io lib)
+// Since the touch and the LCD share a bus, we want to use
+// the same instance. spi_container<HOST>::instance() retrieves that
+// in a cross platform manner.
+touch_t touch(spi_container<HOST>::instance());
+
 using color_t = color<typename lcd_t::pixel_type>;
 using x11_t = x11_palette<hsv_pixel<24>>;
 
@@ -172,9 +193,6 @@ const char* font_path =  "/Ubuntu.ttf"; //"/Telegrama.otf"; // "/Bungee.otf";
 const char* font_name = font_path+1;
 uint8_t* font_buffer;
 size_t font_buffer_len;
-
-lcd_t lcd;
-touch_t touch(spi_container<HOST>::instance());
 
 float current_hue;
   
