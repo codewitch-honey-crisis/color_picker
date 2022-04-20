@@ -1,3 +1,5 @@
+#pragma once 
+// this may be included in a future version of GFX
 #include <gfx_core.hpp>
 #include <gfx_pixel.hpp>
 #include <gfx_color_cpp14.hpp>
