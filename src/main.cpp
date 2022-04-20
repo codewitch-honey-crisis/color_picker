@@ -314,6 +314,8 @@ void draw_frame(int hue) {
       b.write(px2);
     }
   }
+  // commit what we wrote
+  b.commit();
   draw_color(px);
   draw_color_name(px);
 }
