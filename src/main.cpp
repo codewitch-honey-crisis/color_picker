@@ -39,7 +39,7 @@ using namespace gfx;
 #define LCD_BL_HIGH true
 
 // use the default pins for the SPI bus
-using bus_t = tft_spi_ex<HOST,LCD_CS,23,19,18,SPI_MODE0,false>;
+using bus_t = tft_spi<HOST,LCD_CS>;
 // set up the display
 using lcd_t = ili9341<LCD_DC,LCD_RST,LCD_BL,bus_t,LCD_ROTATION,LCD_BL_HIGH>;
 // set up the touch driver
