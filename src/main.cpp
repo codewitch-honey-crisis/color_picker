@@ -82,6 +82,17 @@ void calibrate(bool write=true) {
   ssize16 ssr(8,8);
   // top left
   lcd.fill(lcd.bounds(),color_t::white);
+  // reconstitute our font stream from PSRAM
+  const_buffer_stream cbs(font_buffer,font_buffer_len);
+  open_font fnt;
+  // attempt to open the font (already checked in setup)
+  open_font::open(&cbs,&fnt);
+  float scale = fnt.scale(30);
+  const char* text = "Touch the corners\nas indicated";
+  ssize16 fsz = fnt.measure_text({32767,32767},{0,0},text,scale).inflate(2,2);
+  srect16 tr = fsz.bounds().center((srect16)lcd.bounds());
+  draw::text(lcd,tr,{0,0},text,fnt,scale,color_t::black);
+
   draw::filled_rectangle(lcd,ssr.bounds().offset(sr.top_left()),color_t::sky_blue);
   draw::filled_ellipse(lcd,sr,color_t::sky_blue);
   while(!touch.calibrate_touch(&x,&y)) delay(1);
@@ -124,7 +135,6 @@ void calibrate(bool write=true) {
   // bottom left
   sr=srect16(0,0,15,15);
   sr.offset_inplace(0,lcd.dimensions().height-sr.height());
-  lcd.fill(lcd.bounds(),color_t::white);
   draw::filled_rectangle(lcd,ssr.bounds().offset(sr.x1,sr.y1+sr.height()/2),color_t::sky_blue);
   draw::filled_ellipse(lcd,sr,color_t::sky_blue);
   while(!touch.calibrate_touch(&x,&y)) delay(1);
@@ -258,7 +268,7 @@ void setup() {
     while(true) delay(1000);
   }
 
-  if(!read_calibration() || !touch.calibrated()) {
+  if(true || !read_calibration() || !touch.calibrated()) {
     calibrate(true);
   }
   current_hue = 0;
