@@ -191,7 +191,6 @@ void draw_color(hsv_pixel<24> color) {
   pal.nearest(cpx,&px);
   pal.map(px,&cpx);
   draw::filled_rectangle(lcd,srect16(160,140,319,159),cpx);
-
 }
 // draw the name of the color
 void draw_color_name(hsv_pixel<24> color) {
@@ -213,10 +212,10 @@ void draw_color_name(hsv_pixel<24> color) {
   draw::text(lcd,tr,{0,0},name,fnt,scale,color_t::black);
 }
 
-void draw_frame(int hue) {
+void draw_frame(float hue) {
   // draw a linear gradient on the HSV axis, where h is fixed at "hue"
   // and S and V are along the Y and X axes, respectively
-  hsv_pixel<24> px(true,(((float)hue)/(lcd.dimensions().width-1)),1,1);
+  hsv_pixel<24> px(true,hue,1,1);
   auto px2 = px;
   // batching is the fastest way
   auto b = draw::batch(lcd,srect16(0,0,319,139));
@@ -292,7 +291,7 @@ void loop() {
     // hue bar?
     if(y>=210) {
       current_hue = ((double)x)/319.0;
-      draw_frame(x);
+      draw_frame(current_hue);
     } else if(y<140) { // gradient area
       double s = ((double)y)/139.0;
       double v = ((double)x)/319.0;
