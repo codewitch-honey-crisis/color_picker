@@ -58,8 +58,8 @@ touch_t touch(spi_container<HOST>::instance());
 
 // easy access to the X11 colors for our display
 using color_t = color<typename lcd_t::pixel_type>;
-// easy access to our X11 palette mapped to 24-bit HSV
-using x11_t = x11_palette<hsv_pixel<24>>;
+// easy access to our X11 palette mapped to 24-bit RGB
+using x11_t = x11_palette<rgb_pixel<24>>;
 
 // you can try one of the other fonts if you like.
 const char* font_path =  "/Ubuntu.ttf"; //"/Telegrama.otf"; // "/Bungee.otf";
@@ -67,6 +67,7 @@ const char* font_name = font_path+1;
 uint8_t* font_buffer;
 size_t font_buffer_len;
 
+// holds the currently selected hue value
 float current_hue;
   
 // calibrates the screen, optionally writing the calibration file to SPIFFS
@@ -169,7 +170,9 @@ bool read_calibration() {
 }
 // draw a 90deg linear gradient from HSV(0%,100%,100%) to HSV(100%,100%,100%)
 void draw_hue_bar(rect16 rect) {
-  int w = (float)rect.width()/(float)((hsv_pixel<24>::channel_by_name<channel_name::H>::max-hsv_pixel<24>::channel_by_name<channel_name::H>::min)+1);
+  int w = (float)rect.width()/
+          (float)((hsv_pixel<24>::channel_by_name<channel_name::H>::max
+                  -hsv_pixel<24>::channel_by_name<channel_name::H>::min)+1);
   if(w==0)
     w=1;
 
@@ -183,16 +186,20 @@ void draw_color(hsv_pixel<24> color) {
   draw::filled_rectangle(lcd,srect16(0,140,159,159),color);
   x11_t pal;
   typename x11_t::pixel_type px;
-  pal.nearest(color,&px);
-  pal.map(px,&color);
-  draw::filled_rectangle(lcd,srect16(160,140,319,159),color);
+  typename x11_t::mapped_pixel_type cpx;
+  convert(color,&cpx);
+  pal.nearest(cpx,&px);
+  pal.map(px,&cpx);
+  draw::filled_rectangle(lcd,srect16(160,140,319,159),cpx);
 
 }
 // draw the name of the color
 void draw_color_name(hsv_pixel<24> color) {
   x11_t pal;
   typename x11_t::pixel_type ipx;
-  pal.nearest(color,&ipx);
+  typename x11_t::mapped_pixel_type cpx;
+  convert(color,&cpx);
+  pal.nearest(cpx,&ipx);
   const char* name = x11_names[ipx.template channel<0>()];
   // reconstitute our font stream from PSRAM
   const_buffer_stream cbs(font_buffer,font_buffer_len);
@@ -268,7 +275,7 @@ void setup() {
     while(true) delay(1000);
   }
 
-  if(true || !read_calibration() || !touch.calibrated()) {
+  if(!read_calibration() || !touch.calibrated()) {
     calibrate(true);
   }
   current_hue = 0;
@@ -277,7 +284,6 @@ void setup() {
   // draw the initial frame 
   draw_frame(0);
 }
-
 
 void loop() {
   uint16_t x=0,y=0;
